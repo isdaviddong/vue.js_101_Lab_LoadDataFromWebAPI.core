@@ -1,19 +1,20 @@
-<html>
+﻿<html>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"
-    integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+        integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.10/vue.min.js"
-    integrity="sha256-chlNFSVx3TdcQ2Xlw7SvnbLAavAQLO0Y/LBiWX04viY=" crossorigin="anonymous"></script>
+        integrity="sha256-chlNFSVx3TdcQ2Xlw7SvnbLAavAQLO0Y/LBiWX04viY=" crossorigin="anonymous"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css"
-    integrity="sha256-YLGeXaapI0/5IgZopewRJcFXomhRMlYYjugPLSyNjTY=" crossorigin="anonymous" />
+      integrity="sha256-YLGeXaapI0/5IgZopewRJcFXomhRMlYYjugPLSyNjTY=" crossorigin="anonymous" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js"
-    integrity="sha256-CjSoeELFOcH0/uxWu6mC/Vlrc1AARqbm/jiiImDGV3s=" crossorigin="anonymous"></script>
+        integrity="sha256-CjSoeELFOcH0/uxWu6mC/Vlrc1AARqbm/jiiImDGV3s=" crossorigin="anonymous"></script>
 <script>
     var vm;
 
     var json =
     {
         items: [
+            // 前端測試用假資料
             // {
             //     id: 3,
             //     title: "總裁", name: "Eric", PictureURL: "https://i.imgur.com/uxvy97n.png", Phone: "0912345678",
@@ -51,6 +52,8 @@
             }
         );
     }
+
+    //初始化，從遠端抓取資料
     function init() {
         $.ajax({
             type: "Get",
@@ -69,16 +72,20 @@
     function ButtonClickSetup() {
         $('#ButtonNext').click(ButtonNext);
         $('#ButtonPrev').click(ButtonPrev);
+        $('#Save2Server').click(Save2Server);
     }
 
+    //取得當前顯示的資料
     function getCurrentBindingData() {
         return vm.$data.item;
     }
 
+    //顯示某筆資料
     function showData(DataItem) {
         vm.$data.item = DataItem;
     }
 
+    //前一筆
     function ButtonPrev(params) {
         //取得當前顯示資料
         var tmp = getCurrentBindingData();
@@ -88,6 +95,7 @@
         }
     }
 
+    //後一筆
     function ButtonNext(params) {
         //取得當前顯示資料
         var tmp = getCurrentBindingData();
@@ -95,6 +103,21 @@
         if (i < json.items.length - 1) {
             showData(json.items[i + 1]);
         }
+    }
+
+    //回存資料到伺服器端
+    function Save2Server() {
+        $.ajax({
+            type: "Post",
+            url: "/Employee",
+            data: JSON.stringify(json.items), //注意是放JSON  字串
+            dataType: "json",
+            headers: { 'Content-type': 'application/json' },  //注意 Content-type
+            success: function (response) {
+                if(response==true)
+                alert('儲存成功');
+            }
+        });
     }
 
 
@@ -109,7 +132,8 @@
             <div class="row">
                 <div class="col-6">
                     <br />
-                    <div v-if="item.isValid!=true" style="float: right; background-color: yellow; width: 100px">❌已刪除
+                    <div v-if="item.isValid!=true" style="float: right; background-color: yellow; width: 100px">
+                        ❌已刪除
                     </div>
                     <h5>資料編號: {{item.id}}</h5>
                     <label>職稱:</label>
@@ -121,7 +145,7 @@
                 </div>
                 <div class="col-6">
                     <img class="img-responsive pull-right" style="width: 200px; margin-top: 30px"
-                        v-bind:src="item.pictureURL" />
+                         v-bind:src="item.pictureURL" />
                 </div>
             </div>
             <label>Address:</label>
@@ -134,6 +158,9 @@
             <button v-else v-on:click="SaveData" class="btn btn-danger" id="ButtonPrev">救回</button>
             <button class="btn btn-success  pull-right" id="ButtonNext">下一筆</button>
             <br /> <br />
+        </div>
+        <div class="col-6">
+            <button id="Save2Server" class="btn btn-secondary">儲存至伺服器端</button>
         </div>
     </div>
 </body>

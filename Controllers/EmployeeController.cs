@@ -1,4 +1,6 @@
-﻿using System;
+﻿using System.Net;
+using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -11,6 +13,22 @@ namespace test01.Controllers
     [Route("[controller]")]
     public class EmployeeController : ControllerBase
     {
+        [HttpPost]
+        public IActionResult Post(IEnumerable<Employee> data)
+        {
+            //儲存至iso
+            var sto = System.IO.IsolatedStorage.IsolatedStorageFile.GetUserStoreForAssembly();
+            var file = sto.CreateFile("data");
+            using (StreamWriter writer = new StreamWriter(file))
+            {
+                var JOSN = Newtonsoft.Json.JsonConvert.SerializeObject(data);
+                writer.WriteLine(JOSN);
+            }
+            file.Close();
+            sto.Close();
+            return Ok(true);
+        }
+
         [HttpGet]
         public IEnumerable<Employee> Get()
         {
@@ -36,7 +54,27 @@ namespace test01.Controllers
             }
         ]
 ";
+
+
+            //嘗試從storage取得
+            var sto = System.IO.IsolatedStorage.IsolatedStorageFile.GetUserStoreForAssembly();
+            if (sto.FileExists("data")) //如果有檔案
+            {
+                //開擋
+                var file = sto.OpenFile("data", FileMode.Open);
+                //讀擋
+                using (StreamReader reader = new StreamReader(file))
+                {
+                    //覆蓋JSON
+                    JSON = reader.ReadToEnd();
+                }
+                file.Close();
+                sto.Close();
+            }
+
+            //轉成物件
             var dat = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Employee>>(JSON);
+            //直接透過 WebAPI 傳遞給前端
             return dat;
         }
     }
