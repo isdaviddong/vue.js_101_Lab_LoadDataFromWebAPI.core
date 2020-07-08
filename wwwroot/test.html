@@ -1,0 +1,141 @@
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"
+    integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.10/vue.min.js"
+    integrity="sha256-chlNFSVx3TdcQ2Xlw7SvnbLAavAQLO0Y/LBiWX04viY=" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css"
+    integrity="sha256-YLGeXaapI0/5IgZopewRJcFXomhRMlYYjugPLSyNjTY=" crossorigin="anonymous" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js"
+    integrity="sha256-CjSoeELFOcH0/uxWu6mC/Vlrc1AARqbm/jiiImDGV3s=" crossorigin="anonymous"></script>
+<script>
+    var vm;
+
+    var json =
+    {
+        items: [
+            // {
+            //     id: 3,
+            //     title: "總裁", name: "Eric", PictureURL: "https://i.imgur.com/uxvy97n.png", Phone: "0912345678",
+            //     Address: "新竹市大同區二三五路四號六樓",
+            //     Memo: "澳洲來的人", isValid: true
+            // },
+            // {
+            //     id: 4,
+            //     title: "瑪農", name: "David", PictureURL: "https://i.imgur.com/qsQcoGh.png", Phone: "0987654321",
+            //     Address: "台北市信義區忠孝東路231號3樓",
+            //     Memo: "充滿活力的廉價勞工", isValid: false
+            // },
+            // {
+            //     id: 5,
+            //     title: "Boss", name: "Amy", PictureURL: "https://i.imgur.com/dfww1JX.png", Phone: "0912121121",
+            //     Address: "高雄市仁義區六六路3號23樓",
+            //     Memo: "小資女", isValid: true
+            // }
+        ]
+    };
+
+    function Binding() {
+        vm = new Vue(
+            {
+                el: '#block1',
+                data: { item: json.items[0] },
+                methods: {
+                    SaveData: function (event) {
+                        this.$data.item.isValid = !this.$data.item.isValid;
+                    },
+                    DeleteData: function (event) {
+                        this.$data.item.isValid = !this.$data.item.isValid;
+                    }
+                }
+            }
+        );
+    }
+    function init() {
+        $.ajax({
+            type: "Get",
+            url: "/Employee",
+            data: "",
+            dataType: "json",
+            success: function (response) {
+                //alert(response);
+                json.items = response;
+                Binding();
+                ButtonClickSetup();
+            }
+        });
+    }
+
+    function ButtonClickSetup() {
+        $('#ButtonNext').click(ButtonNext);
+        $('#ButtonPrev').click(ButtonPrev);
+    }
+
+    function getCurrentBindingData() {
+        return vm.$data.item;
+    }
+
+    function showData(DataItem) {
+        vm.$data.item = DataItem;
+    }
+
+    function ButtonPrev(params) {
+        //取得當前顯示資料
+        var tmp = getCurrentBindingData();
+        var i = json.items.indexOf(tmp);
+        if (i > 0) {
+            showData(json.items[i - 1]);
+        }
+    }
+
+    function ButtonNext(params) {
+        //取得當前顯示資料
+        var tmp = getCurrentBindingData();
+        var i = json.items.indexOf(tmp);
+        if (i < json.items.length - 1) {
+            showData(json.items[i + 1]);
+        }
+    }
+
+
+    $(document).ready(function () {
+        init();
+    });
+</script>
+
+<body>
+    <div id="block1" class="row" style="margin: 10px">
+        <div class="col-6" style="background-color:lightgray; margin: 30px">
+            <div class="row">
+                <div class="col-6">
+                    <br />
+                    <div v-if="item.isValid!=true" style="float: right; background-color: yellow; width: 100px">❌已刪除
+                    </div>
+                    <h5>資料編號: {{item.id}}</h5>
+                    <label>職稱:</label>
+                    <input class="form-control" type="text" v-model="item.title" />
+                    <label>姓名:</label>
+                    <input class="form-control" type="text" v-model="item.name" />
+                    <label>Phone:</label>
+                    <input class="form-control" type="text" v-model="item.phone" />
+                </div>
+                <div class="col-6">
+                    <img class="img-responsive pull-right" style="width: 200px; margin-top: 30px"
+                        v-bind:src="item.pictureURL" />
+                </div>
+            </div>
+            <label>Address:</label>
+            <input class="form-control" type="text" v-model="item.address" />
+            <label>Memo:</label>
+            <textarea class="form-control" v-model="item.memo"></textarea>
+            <br />
+            <button class="btn btn-success" id="ButtonPrev">上一筆</button>
+            <button v-if="item.isValid==true" v-on:click="DeleteData" class="btn btn-danger" id="ButtonPrev">刪除</button>
+            <button v-else v-on:click="SaveData" class="btn btn-danger" id="ButtonPrev">救回</button>
+            <button class="btn btn-success  pull-right" id="ButtonNext">下一筆</button>
+            <br /> <br />
+        </div>
+    </div>
+</body>
+
+</html>
