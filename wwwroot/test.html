@@ -80,6 +80,7 @@
                 json.items = response;
                 Binding();
                 ButtonClickSetup();
+                BuildJqDataTable();
             }
         });
     }
@@ -88,6 +89,24 @@
         $('#ButtonNext').click(ButtonNext);
         $('#ButtonPrev').click(ButtonPrev);
         $('#Save2Server').click(Save2Server);
+        $('#AddNew').click(AddNew);
+        $('#Button_AddNewSave').click(Button_AddNewSave);
+    }
+
+    //modal Button_AddNewSave
+    function Button_AddNewSave() {
+        //取得最後一筆資料 id
+        var NewID = json.items[json.items.length - 1].id;
+        //取出輸入資料
+        var newItem =
+        {
+            id: (NewID + 1),
+            title: $('#field_title').val(), name: $('#field_name').val(), address: $('#field_address').val(), phone: $('#field_phone').val(),
+            memo: $('#field_memo').val(), isValid: true
+        };
+
+        //加入陣列
+        json.items.push(newItem);
     }
 
     //取得當前顯示的資料
@@ -135,13 +154,25 @@
         });
     }
 
+    //AddNew
+    function AddNew() {
+        $('#AddNewModal').modal();
+    }
 
+    var jqDT = null;
+    function BuildJqDataTable() {
+        if (jqDT != null)
+            jqDT.destroy();
+        //data Table init
+        jqDT = $('#myTable').DataTable({
+            "info": false, "bLengthChange": false, "paging": false
+        });
+    }
+
+    //document Load
     $(document).ready(function () {
         init();
 
-        $('#myTable').DataTable({
-            "info": false, "bLengthChange": false, "pageLength": 5
-        });
     });
 </script>
 
@@ -208,6 +239,42 @@
         </div>
         <div class="col-md-6">
             <button id="Save2Server" class="btn btn-secondary">儲存至伺服器端</button>
+            <button id="AddNew" class="btn btn-secondary">新增資料</button>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="AddNewModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">新增資料</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <label>職稱</label>
+                            <input type="text" id="field_title" class="form-control" placeholder="輸入職稱" />
+                            <label>姓名</label>
+                            <input type="text" id="field_name" class="form-control" placeholder="輸入姓名" />
+                            <label>phone</label>
+                            <input type="text" id="field_phone" class="form-control" placeholder="輸入Phone" />
+                            <label>address</label>
+                            <input type="text" id="field_address" class="form-control" placeholder="輸入Address" />
+                            <label>memo</label>
+                            <textarea class="form-control" id="field_memo" rows="3" placeholder="輸入Memo"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                    <button type="button" id="Button_AddNewSave" class="btn btn-primary">新增</button>
+                </div>
+            </div>
         </div>
     </div>
 </body>

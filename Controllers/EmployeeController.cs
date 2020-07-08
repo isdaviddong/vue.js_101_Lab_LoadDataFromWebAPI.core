@@ -13,12 +13,14 @@ namespace test01.Controllers
     [Route("[controller]")]
     public class EmployeeController : ControllerBase
     {
+        const string DefaultFileName="file";
+        
         [HttpPost]
         public IActionResult Post(IEnumerable<Employee> data)
         {
             //儲存至iso
             var sto = System.IO.IsolatedStorage.IsolatedStorageFile.GetUserStoreForAssembly();
-            var file = sto.CreateFile("data");
+            var file = sto.CreateFile(DefaultFileName);
             using (StreamWriter writer = new StreamWriter(file))
             {
                 var JOSN = Newtonsoft.Json.JsonConvert.SerializeObject(data);
@@ -58,10 +60,10 @@ namespace test01.Controllers
 
             //嘗試從storage取得
             var sto = System.IO.IsolatedStorage.IsolatedStorageFile.GetUserStoreForAssembly();
-            if (sto.FileExists("data")) //如果有檔案
+            if (sto.FileExists(DefaultFileName)) //如果有檔案
             {
                 //開擋
-                var file = sto.OpenFile("data", FileMode.Open);
+                var file = sto.OpenFile(DefaultFileName, FileMode.Open);
                 //讀擋
                 using (StreamReader reader = new StreamReader(file))
                 {
