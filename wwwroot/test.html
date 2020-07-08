@@ -1,13 +1,16 @@
 ﻿<html>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"
-        integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+    integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.10/vue.min.js"
-        integrity="sha256-chlNFSVx3TdcQ2Xlw7SvnbLAavAQLO0Y/LBiWX04viY=" crossorigin="anonymous"></script>
+    integrity="sha256-chlNFSVx3TdcQ2Xlw7SvnbLAavAQLO0Y/LBiWX04viY=" crossorigin="anonymous"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css"
-      integrity="sha256-YLGeXaapI0/5IgZopewRJcFXomhRMlYYjugPLSyNjTY=" crossorigin="anonymous" />
+    integrity="sha256-YLGeXaapI0/5IgZopewRJcFXomhRMlYYjugPLSyNjTY=" crossorigin="anonymous" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js"
-        integrity="sha256-CjSoeELFOcH0/uxWu6mC/Vlrc1AARqbm/jiiImDGV3s=" crossorigin="anonymous"></script>
+    integrity="sha256-CjSoeELFOcH0/uxWu6mC/Vlrc1AARqbm/jiiImDGV3s=" crossorigin="anonymous"></script>
+<!-- DataTable -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css">
+<script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
 <script>
     var vm;
 
@@ -37,6 +40,17 @@
     };
 
     function Binding() {
+        vmTable = new Vue(
+            {
+                el: '#blockForTable',
+                data: { items: json.items },
+                methods: {
+                    select: function (item) {
+                        showData(item);
+                    },
+                }
+            }
+        );
         vm = new Vue(
             {
                 el: '#block1',
@@ -51,6 +65,7 @@
                 }
             }
         );
+
     }
 
     //初始化，從遠端抓取資料
@@ -114,8 +129,8 @@
             dataType: "json",
             headers: { 'Content-type': 'application/json' },  //注意 Content-type
             success: function (response) {
-                if(response==true)
-                alert('儲存成功');
+                if (response == true)
+                    alert('儲存成功');
             }
         });
     }
@@ -123,12 +138,44 @@
 
     $(document).ready(function () {
         init();
+
+        $('#myTable').DataTable({
+            "info": false, "bLengthChange": false, "pageLength": 5
+        });
     });
 </script>
 
 <body>
+    <div id="blockForTable" class="row" style="margin: 10px">
+        <div class="col-12">
+            <table id="myTable" class="cell-border compact stripe" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>功能</th>
+                        <th>ID</th>
+                        <th>Title</th>
+                        <th>Name</th>
+                        <th>Phone</th>
+                        <th>isValid</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="item in items">
+                        <td>
+                            <button class="btn btn-primary" v-on:click="select(item)">選取</button>
+                        </td>
+                        <td>{{item.id}}</td>
+                        <td>{{item.title}}</td>
+                        <td>{{item.name}}</td>
+                        <td>{{item.phone}}</td>
+                        <td>{{item.isValid}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
     <div id="block1" class="row" style="margin: 10px">
-        <div class="col-6" style="background-color:lightgray; margin: 30px">
+        <div class="col-md-6" style="background-color:lightgray;">
             <div class="row">
                 <div class="col-6">
                     <br />
@@ -145,7 +192,7 @@
                 </div>
                 <div class="col-6">
                     <img class="img-responsive pull-right" style="width: 200px; margin-top: 30px"
-                         v-bind:src="item.pictureURL" />
+                        v-bind:src="item.pictureURL" />
                 </div>
             </div>
             <label>Address:</label>
@@ -159,7 +206,7 @@
             <button class="btn btn-success  pull-right" id="ButtonNext">下一筆</button>
             <br /> <br />
         </div>
-        <div class="col-6">
+        <div class="col-md-6">
             <button id="Save2Server" class="btn btn-secondary">儲存至伺服器端</button>
         </div>
     </div>
