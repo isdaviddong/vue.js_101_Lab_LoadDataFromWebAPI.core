@@ -95,7 +95,7 @@
 
     //modal Button_AddNewSave
     function Button_AddNewSave() {
-        //取得最後一筆資料 id
+        //取得最後一筆資料 id (這裡有個假設)
         var NewID = json.items[json.items.length - 1].id;
         //取出輸入資料
         var newItem =
@@ -104,9 +104,10 @@
             title: $('#field_title').val(), name: $('#field_name').val(), address: $('#field_address').val(), phone: $('#field_phone').val(),
             memo: $('#field_memo').val(), isValid: true
         };
-
         //加入陣列
         json.items.push(newItem);
+        //關閉Model
+        $('#AddNewModal').modal('hide');
     }
 
     //取得當前顯示的資料
