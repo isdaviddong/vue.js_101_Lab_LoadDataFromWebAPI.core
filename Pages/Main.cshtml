@@ -1,0 +1,288 @@
+﻿@page
+@model test01.Pages.MainModel
+@{
+}
+
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"
+    integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.10/vue.min.js"
+    integrity="sha256-chlNFSVx3TdcQ2Xlw7SvnbLAavAQLO0Y/LBiWX04viY=" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css"
+    integrity="sha256-YLGeXaapI0/5IgZopewRJcFXomhRMlYYjugPLSyNjTY=" crossorigin="anonymous" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js"
+    integrity="sha256-CjSoeELFOcH0/uxWu6mC/Vlrc1AARqbm/jiiImDGV3s=" crossorigin="anonymous"></script>
+<!-- DataTable -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css">
+<script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+<script>
+    var vm;
+
+    var json =
+    {
+        items: [
+            // 前端測試用假資料
+            // {
+            //     id: 3,
+            //     title: "總裁", name: "Eric", PictureURL: "https://i.imgur.com/uxvy97n.png", Phone: "0912345678",
+            //     Address: "新竹市大同區二三五路四號六樓",
+            //     Memo: "澳洲來的人", isValid: true
+            // },
+            // {
+            //     id: 4,
+            //     title: "瑪農", name: "David", PictureURL: "https://i.imgur.com/qsQcoGh.png", Phone: "0987654321",
+            //     Address: "台北市信義區忠孝東路231號3樓",
+            //     Memo: "充滿活力的廉價勞工", isValid: false
+            // },
+            // {
+            //     id: 5,
+            //     title: "Boss", name: "Amy", PictureURL: "https://i.imgur.com/dfww1JX.png", Phone: "0912121121",
+            //     Address: "高雄市仁義區六六路3號23樓",
+            //     Memo: "小資女", isValid: true
+            // }
+        ]
+    };
+
+    function Binding() {
+        vmTable = new Vue(
+            {
+                el: '#blockForTable',
+                data: { items: json.items },
+                methods: {
+                    select: function (item) {
+                        showData(item);
+                    },
+                }
+            }
+        );
+        vm = new Vue(
+            {
+                el: '#block1',
+                data: { item: json.items[0] },
+                methods: {
+                    SaveData: function (event) {
+                        this.$data.item.isValid = !this.$data.item.isValid;
+                    },
+                    DeleteData: function (event) {
+                        this.$data.item.isValid = !this.$data.item.isValid;
+                    }
+                }
+            }
+        );
+
+    }
+
+    //初始化，從遠端抓取資料
+    function init() {
+        $.ajax({
+            type: "Get",
+            url: "/Employee",
+            data: "",
+            dataType: "json",
+            success: function (response) {
+                //alert(response);
+                json.items = response;
+                Binding();
+                ButtonClickSetup();
+                BuildJqDataTable();
+            }
+        });
+    }
+
+    function ButtonClickSetup() {
+        $('#ButtonNext').click(ButtonNext);
+        $('#ButtonPrev').click(ButtonPrev);
+        $('#Save2Server').click(Save2Server);
+        $('#AddNew').click(AddNew);
+        $('#Button_AddNewSave').click(Button_AddNewSave);
+    }
+
+    //modal Button_AddNewSave
+    function Button_AddNewSave() {
+        //取得最後一筆資料 id (這裡有個假設)
+        var NewID = json.items[json.items.length - 1].id;
+        //取出輸入資料
+        var newItem =
+        {
+            id: (NewID + 1),
+            title: $('#field_title').val(), name: $('#field_name').val(), address: $('#field_address').val(), phone: $('#field_phone').val(),
+            memo: $('#field_memo').val(), isValid: true
+        };
+        //加入陣列
+        json.items.push(newItem);
+        //關閉Model
+        $('#AddNewModal').modal('hide');
+    }
+
+    //取得當前顯示的資料
+    function getCurrentBindingData() {
+        return vm.$data.item;
+    }
+
+    //顯示某筆資料
+    function showData(DataItem) {
+        vm.$data.item = DataItem;
+    }
+
+    //前一筆
+    function ButtonPrev(params) {
+        //取得當前顯示資料
+        var tmp = getCurrentBindingData();
+        var i = json.items.indexOf(tmp);
+        if (i > 0) {
+            showData(json.items[i - 1]);
+        }
+    }
+
+    //後一筆
+    function ButtonNext(params) {
+        //取得當前顯示資料
+        var tmp = getCurrentBindingData();
+        var i = json.items.indexOf(tmp);
+        if (i < json.items.length - 1) {
+            showData(json.items[i + 1]);
+        }
+    }
+
+    //回存資料到伺服器端
+    function Save2Server() {
+        $.ajax({
+            type: "Post",
+            url: "/Employee",
+            data: JSON.stringify(json.items), //注意是放JSON  字串
+            dataType: "json",
+            headers: { 'Content-type': 'application/json' },  //注意 Content-type
+            success: function (response) {
+                if (response == true)
+                    alert('儲存成功');
+            }
+        });
+    }
+
+    //AddNew
+    function AddNew() {
+        $('#AddNewModal').modal();
+    }
+
+    var jqDT = null;
+    function BuildJqDataTable() {
+        if (jqDT != null)
+            jqDT.destroy();
+        //data Table init
+        jqDT = $('#myTable').DataTable({
+            "info": false, "bLengthChange": false, "paging": false
+        });
+    }
+
+    //document Load
+    $(document).ready(function () {
+        init();
+
+    });
+</script>
+
+<body>
+    <div id="blockForTable" class="row" style="margin: 10px">
+        <div class="col-12">
+            <table id="myTable" class="cell-border compact stripe" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>功能</th>
+                        <th>ID</th>
+                        <th>Title</th>
+                        <th>Name</th>
+                        <th>Phone</th>
+                        <th>isValid</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="item in items">
+                        <td>
+                            <button class="btn btn-primary" v-on:click="select(item)">選取</button>
+                        </td>
+                        <td>{{item.id}}</td>
+                        <td>{{item.title}}</td>
+                        <td>{{item.name}}</td>
+                        <td>{{item.phone}}</td>
+                        <td>{{item.isValid}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div id="block1" class="row" style="margin: 10px">
+        <div class="col-md-6" style="background-color:lightgray;">
+            <div class="row">
+                <div class="col-6">
+                    <br />
+                    <div v-if="item.isValid!=true" style="float: right; background-color: yellow; width: 100px">
+                        ❌已刪除
+                    </div>
+                    <h5>資料編號: {{item.id}}</h5>
+                    <label>職稱:</label>
+                    <input class="form-control" type="text" v-model="item.title" />
+                    <label>姓名:</label>
+                    <input class="form-control" type="text" v-model="item.name" />
+                    <label>Phone:</label>
+                    <input class="form-control" type="text" v-model="item.phone" />
+                </div>
+                <div class="col-6">
+                    <img class="img-responsive pull-right" style="width: 200px; margin-top: 30px"
+                        v-bind:src="item.pictureURL" />
+                </div>
+            </div>
+            <label>Address:</label>
+            <input class="form-control" type="text" v-model="item.address" />
+            <label>Memo:</label>
+            <textarea class="form-control" v-model="item.memo"></textarea>
+            <br />
+            <button class="btn btn-success" id="ButtonPrev">上一筆</button>
+            <button v-if="item.isValid==true" v-on:click="DeleteData" class="btn btn-danger" id="ButtonPrev">刪除</button>
+            <button v-else v-on:click="SaveData" class="btn btn-danger" id="ButtonPrev">救回</button>
+            <button class="btn btn-success  pull-right" id="ButtonNext">下一筆</button>
+            <br /> <br />
+        </div>
+        <div class="col-md-6">
+            <button id="Save2Server" class="btn btn-secondary">儲存至伺服器端</button>
+            <button id="AddNew" class="btn btn-secondary">新增資料</button>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="AddNewModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">新增資料</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <label>職稱</label>
+                            <input type="text" id="field_title" class="form-control" placeholder="輸入職稱" />
+                            <label>姓名</label>
+                            <input type="text" id="field_name" class="form-control" placeholder="輸入姓名" />
+                            <label>phone</label>
+                            <input type="text" id="field_phone" class="form-control" placeholder="輸入Phone" />
+                            <label>address</label>
+                            <input type="text" id="field_address" class="form-control" placeholder="輸入Address" />
+                            <label>memo</label>
+                            <textarea class="form-control" id="field_memo" rows="3" placeholder="輸入Memo"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                    <button type="button" id="Button_AddNewSave" class="btn btn-primary">新增</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
